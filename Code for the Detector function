@@ -1,0 +1,38 @@
+function [rect] = Detecter(data)
+
+%% Threshold the green channel in the image.
+greenChannel = data(:, :, 2);
+binaryGreen = greenChannel > 150;
+mask = binaryGreen;
+data = bsxfun(@times, data, cast(mask,class(data)));
+imshow(data);
+
+%% Threshold the blue channel in the image.
+blueChannel = data(:, :, 3);
+binaryBlue = blueChannel > 140;
+mask = binaryBlue;
+data = bsxfun(@times, data, cast(mask,class(data)));
+imshow(data);
+
+%% Call the Thresholding function to convert the edited image to binary.
+gray_data = rgb2gray(data);
+data2 = Thresholding(gray_data);
+imshow(data2);
+
+%% Gets all the properties of the electrode.
+cc = bwconncomp(data2);
+stats = regionprops(cc, 'Area', 'Eccentricity', 'Perimeter');
+A = [stats.Area];
+P = [stats.Perimeter];
+Area_Perimeter = A./P;
+imshow(data2);
+
+%% Give Conditions for finding the Electrode.
+idx = find([stats.Area] < 5000 & [stats.Eccentricity] < 0.7 & [stats.Area] > 100 & Area_Perimeter > 2.5); 
+BW2 = ismember(labelmatrix(cc), idx);  
+imshow(BW2);
+
+%% Bounding Box coordinates found.
+rect = regionprops(BW2, 'BoundingBox');
+
+end
