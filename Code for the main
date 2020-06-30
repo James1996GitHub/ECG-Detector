@@ -1,0 +1,45 @@
+clc;
+close all;
+clear all;
+
+%preview(vid)
+vid = videoinput('winvideo', 4, 'YUY2_320x240'  );
+
+
+% Set video input object properties for this application.
+src.FrameRate = '30.0000';
+vid.ReturnedColorspace = 'rgb';
+vid.TriggerRepeat = 100;
+Num_Frame = vid.TriggerRepeat;
+vid.FramesPerTrigger = 1;
+vid.FrameGrabInterval = 5;
+
+% Set value of a video source object property.
+vid_src = getselectedsource(vid);
+vid_src.Tag = 'motion detection setup';
+
+position = NaN(vid.TriggerRepeat, 30);
+
+%%
+% Start acquiring frames.
+start(vid)
+index = 0;
+pause(0.1);
+
+while(vid.FramesAvailable >= 1)
+    index = index +1
+    data = getdata(vid);
+    rect = Detecter(data, index);
+    centers = rect.Centroid
+   
+       [m , ~] = size(rect);
+       g = 0;
+       for g = 1:m
+           
+           position(index,1:numel(rect.Centroid)) = [rect.Centroid];%(g,:);
+           g = g+1;
+       end
+        
+end
+
+stop(vid)
